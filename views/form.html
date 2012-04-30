@@ -1,0 +1,663 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>SiamShopCrud</title>
+<script type="text/javascript" charset="utf-8" src="cordova-1.5.0.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="http://code.jquery.com/mobile/1.1.0/jquery.mobile-1.1.0.min.css" />
+<link rel="stylesheet" type="text/css" href="http://dev.jtsage.com/cdn/datebox/latest/jquery.mobile.datebox.min.css" />
+<link rel="stylesheet" type="text/css" href="http://dev.jtsage.com/cdn/simpledialog/latest/jquery.mobile.simpledialog.min.css" /> 
+<link rel="stylesheet" type="text/css" href="default.css" />
+<script src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+<script src="http://code.jquery.com/mobile/1.1.0/jquery.mobile-1.1.0.min.js"></script>
+<script type="text/javascript" src="http://dev.jtsage.com/jquery.mousewheel.min.js"></script>
+<script type="text/javascript" src="http://dev.jtsage.com/cdn/datebox/latest/jquery.mobile.datebox.min.js"></script>
+<script type="text/javascript" src="http://dev.jtsage.com/cdn/datebox/i8n/jquery.mobile.datebox.i8n.en.js"></script>
+<script type="text/javascript" src="http://dev.jtsage.com/cdn/simpledialog/latest/jquery.mobile.simpledialog2.min.js"></script>
+<script type="text/javascript" src="camera.js"></script>
+<script type="text/javascript" src="sag-0.3.0.js"></script>
+<script type="text/javascript" charset="utf-8">
+	
+	var image_array = [];
+	var catagory_array = [];
+	var contact_array = [];
+	var category_masterMap = {};
+	var id = '';
+	var _rev = '';
+	var pictureSource;   // picture source
+	var destinationType; // sets the format of returned value 
+	var couch;
+	var documentList = [];
+	// Wait for PhoneGap to connect with the device
+	//
+	
+	var shopData = {type:'shop', 
+					shopName:'',
+					shopDescription:'',
+					operateTime:{monday:{open:'',end:''},
+					tuesday:{open:'',end:''},
+					wednesday:{open:'',end:''},
+					thursday:{open:'',end:''},
+					friday:{open:'',end:''},
+					saturday:{open:'',end:''},
+					sunday:{open:'',end:''}
+				},
+				contactInfo :{
+					shopLocation:'',
+					telephoneNumber:{name:'',number:''},
+					shopWebsite:'',
+				},
+				shopType:[],
+				images:[]	
+	};
+	document.addEventListener("deviceready", onDeviceReady, false);
+	
+	function jsonToForm(obj){
+
+		if(obj._id){
+			shopData['_id'] = obj._id;
+		}
+		if(obj._rev){
+			shopData['_rev'] = obj._rev;
+		}
+		$('#name').val(obj.shopName);
+		$('#story').val(obj.shopDescription);
+		$("#opentime-mon").val(obj.operateTime.monday.open);
+		$("#closetime-mon").val(obj.operateTime.monday.close);
+		$("#opentime-tue").val(obj.operateTime.tuesday.open);
+		$("#closetime-tue").val(obj.operateTime.tuesday.close);
+		$("#opentime-wed").val(obj.operateTime.wednesday.open);
+		$("#closetime-wed").val(obj.operateTime.wednesday.close);
+		$("#opentime-thu").val(obj.operateTime.thursday.open);
+		$("#closetime-thu").val(obj.operateTime.thursday.close);
+		$("#opentime-fri").val(obj.operateTime.friday.open);
+		$("#closetime-fri").val(obj.operateTime.friday.close);
+		$("#opentime-sat").val(obj.operateTime.saturday.open);
+		$("#closetime-sat").val(obj.operateTime.saturday.close);
+		$("#opentime-sun").val(obj.operateTime.sunday.open);
+		$("#closetime-sun").val(obj.operateTime.sunday.close);
+		//info 
+		$('#shopLocation').val(obj.contactInfo.shopLocation);
+		$('#shopWebsite').val(obj.contactInfo.shopWebsite);
+		addContactFromContactList(obj.contactInfo.telephoneNumber);		
+		addCategoryFromCategoryList(obj.shopType);
+		var imageDataList = obj.images;
+		
+		for(i in imageDataList){
+			appendImg(imageDataList[i]);
+		}
+		if(window.localStorage && window.localStorage.getItem('current_row')){
+  		  window.localStorage.removeItem('current_row');
+  		}
+		$.mobile.hidePageLoadingMsg();
+		//$('.contact-entries').listview("refresh");
+		//$('.category-entries').listview("refresh");
+		$.mobile.changePage($('#page-1'));
+		
+		
+	};
+	$(document).bind("mobileinit", function(){
+		  $.mobile.touchOverflowEnabled = true;
+		  $.mobile.fixedToolbars
+		     .setTouchToggleEnabled(true);
+	});
+	function initCategoryMaster(){
+		var select  = $('#select-category');
+		var categoryConfig = window.localStorage.getItem("ini-category");
+		if(categoryConfig){
+			var body = JSON.parse(categoryConfig);
+			var rows = body.rows;
+			for(var i in rows){
+				var options = $('<option value="'+rows[i].key+'">'+rows[i].value+'</option>');
+				select.append(options);
+				category_masterMap[rows[i].key] = rows[i].value;
+			}
+		}
+	}	
+	function onDeviceReady() {
+		pictureSource = navigator.camera.PictureSourceType;
+		destinationType = navigator.camera.DestinationType;
+		$('.ui-input-datebox').each(function(){
+			$(this).removeClass('ui-shadow-inset').removeClass('ui-corner-all').removeClass('ui-body-c').css('width','100%').css('padding-left','0px');
+		});
+
+	  $.mobile.defaultPageTransition = 'none';
+      $.mobile.useFastClick = true;
+      
+      couch = sag.server('shopping.cloudant.com');
+	    couch.setDatabase('shoppingapp');
+	    couch.login({
+	      user: 'shopping',
+	      pass: 'shoppingpass',
+	      type: couch.AUTH_BASIC
+	    });
+		$.mobile.showPageLoadingMsg("d", "Processing...", false); 
+	    initCategoryMaster();
+	    if(window.localStorage && window.localStorage.getItem('current_row')){
+	    	var id =  window.localStorage.getItem('current_row')
+	 		   	couch.get({
+	    		      url: '/'+id,
+	    		      callback: function(resp, success) {
+	    		        // Update the doc.
+	    		        if(success) {
+	    			    	jsonToForm(resp.body);
+	    		        }
+	    		        else {
+	    		          alert('Error getting blog post: HTTP ' + resp._HTTP.status);
+	    		        }
+		    		}
+		    	});
+	    }else{
+			$.mobile.hidePageLoadingMsg();
+			$.mobile.changePage($('#page-1'));
+	    }
+	}
+	 function appendImg(data_image){
+	        //var li = document.createElement('li');
+	        var div = $('<div></div>');
+	        //a.attr('href','#');
+	        div.addClass('gallery-item');
+	        //var img = document.createElement('img');
+	        //img.style.display = 'block';
+	    	if(data_image.isProfile == 'Y'){
+		        if(data_image.dataUrl.indexOf("data:image/jpeg;base64,") == -1){
+		        	$('.main_profile').css('background-image',"url(data:image/jpeg;base64," + data_image.dataUrl+')');
+		        }else{
+		        	$('.main_profile').css('background-image','url('+data_image.dataUrl+')');
+		        }
+
+	        	$('.profileImage').css("display","none");
+		        //$('.profileImage').css({'position':'relative','top':'0px','left':'0px','width':'300px','height':'170px','margin':'0 auto'});
+	    	}
+	    	image_array.push(data_image);
+			var lastIndex = image_array.length-1;
+	    	div.bind('click',{msg: lastIndex}, function(evt) {
+	    			$(document).simpledialog2({
+	    				 mode: 'button',
+	    				    headerText: 'Profile Picture',
+	    				    headerClose: true,
+	    				    buttonPrompt: 'Set As Profile Picture',
+	    				    buttons : {
+	    				      'OK': {
+	    				        click: function () { 
+	    				        	for(index_image in image_array){
+	        		        			image_array[index_image].isProfile = 'N';
+		        		        	}
+	    				        	image_array[evt.data.msg].isProfile = 'Y'; 
+		        		        	if(image_array[evt.data.msg].dataUrl.indexOf("data:image/jpeg;base64,") == -1){
+		        		        		$('.main_profile').css('background-image',"url(data:image/jpeg;base64," + data_image.dataUrl+")");
+		        		            }else{
+		        		            	$('.main_profile').css('background-image',"url("+data_image.dataUrl+")");
+		        		            }
+		        		        	
+		        		        	$('.profileImage').css("display","none");
+	    				        }
+	    				      },
+	    				      'Cancel': {
+	    				        click: function () { 
+	    				          $('#buttonoutput').text('Cancel');
+	    				        },
+	    				        icon: "delete",
+	    				        theme: "c"
+	    				      }
+	    				 }
+		        	})
+		        
+	    	});
+	        if(data_image.dataUrl.indexOf("data:image/jpeg;base64,") == -1){
+	        	div.css("background-image","url(data:image/jpeg;base64," + data_image.dataUrl+")");
+	        }else{
+	        	div.css("background-image",'url('+data_image.dataUrl+')');
+	        }
+	        //img.width = 100;
+	        //a.append($(img));
+	        //$(li).append(div); 
+	        $('.gallery-entries').append(div);
+	    }
+	 
+	function addContactFromContactList(contactList){
+		if(contactList){
+			for(i in contactList){
+				addContact ({phoneName:contactList[i].name,phoneNumber:contactList[i].number});
+			}
+		    //$('.contact-entries').listview("refresh");
+		}
+		
+	}
+	function addContact(data){
+		var phoneName = (data)?data.phoneName:$('.telephoneName').val();
+		var phoneNumber = (data)?data.phoneNumber:$('.telephoneNumber').val();
+		if(!phoneName)phoneName='undefined';
+		if(!phoneNumber)phoneNumber='undefined';
+		contact_array.push({name:phoneName,number:phoneNumber});
+		var lastIndex = contact_array.length-1;
+		
+		var li = $('<li data-icon="false">');
+	    var a  = $('<a data-icon="delete" >');
+	    var ahref = $('<a>');
+	    ahref.attr('href','#');
+	    
+	    var labelName = $('<p><h3 class="phoneName">name :'+phoneName+'</h3></p>');
+	    var labelNumber = $('<p class="phoneNumber"><h3>number :'+phoneNumber+'</h3></p>');
+		
+	    //var aImg  = $('<img>');
+	    //aImg.attr('src','delete_point.png');
+	    //a.append(aImg);   
+	    a.bind('click', function(){
+	    	$(this).parent().remove();
+	    	contact_array[lastIndex] = null;
+	    });
+	    ahref.append(labelName);
+	    ahref.append(labelNumber);
+	    li.append(ahref);
+	    li.append(a);
+	    //li.addClass('contact-item');
+	    $('.contact-entries').append(li);
+		$('.telephoneName').val('');
+		$('.telephoneNumber').val('');
+		if(!data){
+			$('.contact-entries').listview("refresh");
+		}
+	}
+	function addCategoryFromCategoryList(categoryList){
+		if(categoryList){
+			for(i in categoryList){
+				addCategory(categoryList[i]);
+			}
+		}
+	}
+	function addCategory(data){
+		var category = data||$('#select-category').val();
+		var contains = false;
+		for(var key in catagory_array){
+			if(catagory_array[key] == category){
+				contains = true;
+			}
+		}
+		
+		if(!contains){
+			catagory_array.push(category);
+			var lastIndex  =  catagory_array.length-1;
+			
+		   	var li = $('<li>');
+		    var a  = $('<a data-icon="delete" >');
+		    var ahref = $('<a>');
+		    ahref.attr('href','#');
+		    var labelName = $('<p><h3 class="category">'+category_masterMap[category]+'</h3></p>');
+		    ahref.append(labelName);
+		    a.bind('click', function(){
+		    	$(this).parent().remove();
+		    	catagory_array[lastIndex] = null;
+		    });
+		    li.append(ahref);
+		    li.append(a);
+		    li.addClass('category-item');
+		    $('.category-entries').append(li);
+		    if(!data){
+		    	$('.category-entries').listview("refresh");
+		    }
+		}
+	  }
+	function alertValidate(){
+		 $('<div>').simpledialog2({
+			    mode: 'blank',
+			    headerText: 'Validation Error',
+			    fullScreen: true,
+			    fullScreenForce: true,
+			    blankContent : 
+			      "<div class='error'>Please fill Shop Name</div>"+
+			      // NOTE: the use of rel="close" causes this button to close the dialog.
+			      "<a rel='close' data-role='button' href='#'>Close</a>"
+			  });
+	}
+	function findInputContactForSave(){
+		var result = [];
+		if(contact_array && contact_array.length > 0){
+			for(index in contact_array){
+				if(contact_array[index]){
+					result.push(contact_array[index]);
+				}
+			}
+		}
+		return result;
+	}
+	function findInputCategoryForSave(){
+		var result = [];
+		if(catagory_array && catagory_array.length > 0){
+			for(index in catagory_array){
+				if(catagory_array[index]){
+					result.push(catagory_array[index]);
+				}	
+			}
+		}
+		return result;
+	}
+	function save(){
+		var input_shopName = $("#name").val()||'';
+		var input_shopStory = $("#story").val()||'';
+		var input_shopLocation = $("#shopLocation").val()||'';
+		var input_shopWebsite = $("#shopWebsite").val()||'';
+		var input_contact = findInputContactForSave();
+		var input_category = findInputCategoryForSave();
+		var input_OperatingTime ={monday:{open:$("#opentime-mon").val(),close:$("#closetime-mon").val()},
+								  tuesday:{open:$("#opentime-tue").val(),close:$("#closetime-tue").val()},
+								  wednesday:{open:$("#opentime-wed").val(),close:$("#closetime-wed").val()},
+								  thursday:{open:$("#opentime-thu").val(),close:$("#closetime-thu").val()},
+								  friday:{open:$("#opentime-fri").val(),close:$("#closetime-fri").val()},
+								  saturday:{open:$("#opentime-sat").val(),close:$("#closetime-sat").val()},
+								  sunday:{open:$("#opentime-sun").val(),close:$("#closetime-sun").val()},
+								};
+		var input_contactInfo = {
+									shopLocation:input_shopLocation,
+									telephoneNumber:input_contact,
+									shopWebsite:input_shopWebsite
+								};
+		
+		shopData['shopName'] = input_shopName;
+		shopData['contactInfo'] = input_contactInfo;
+		shopData['shopDescription'] = input_shopStory;
+		shopData['operateTime'] = input_OperatingTime;
+		shopData['images'] = image_array;
+		shopData['shopType'] = input_category;
+		//var params = {shop : JSON.stringify(shopData)};
+		$.mobile.showPageLoadingMsg("d", "processing...", false);
+		if(shopData['_id']){
+			 couch.put({
+				  id : shopData['_id'],
+		          data: shopData,
+		          callback: function(resp, success) {
+		            if(success) {
+		            	  $.mobile.hidePageLoadingMsg();
+		            	  window.location.replace('list.html');
+		            }
+		            else {
+			              $.mobile.hidePageLoadingMsg();
+			              alert(JSON.stringify(resp));
+		            }
+		          }
+		        });
+		}else{
+		 couch.post({
+	          data: shopData,
+	          callback: function(resp, success) {
+	            if(success) {
+	            	  $.mobile.hidePageLoadingMsg();
+	            	  window.location.replace('list.html');
+	            }
+	            else {
+		              $.mobile.hidePageLoadingMsg();
+		              alert(JSON.stringify(resp));
+	            }
+	          }
+	        });
+		}
+	}
+</script>
+</head>
+<body>
+
+	<div id="loadingPage" data-role="page">
+		<div data-role="content">
+			
+		</div>
+	</div>
+ 	<div id="page-1" data-role="page" >
+		<div data-role="header" class="ui-bar-d">
+						<a href="list.html" data-ajax="false" data-icon="delete">Cancel</a>
+							<h1>SiamShopCrud</h1>
+						<a href="#" onclick="save();" data-icon="check" >Save</a>
+		</div>
+		<div data-role="content">
+				
+			<div class="main_profile"
+				style="width: 300px; height: 170px; position:relative; margin: 0 auto;background-size:cover;
+				background-repeat: no-repeat;">
+				<img class="profileImage" src="image.png" alt="image"
+					style="position: absolute; top: 50%; left: 50%; margin-left: -16px; margin-top: -18px" />
+			</div>
+			<div data-role="collapsible-set">
+				<div data-role="collapsible">
+					<h3>Shop Detail</h3>
+					<div data-role="fieldcontain">
+						<label for="name">Shop Name</label> <input name="name" id="name"
+							type="text" /> <label for="story">Shop Story</label>
+						<textarea name="story" id="story"></textarea>
+					</div>
+				</div>
+				<div data-role="collapsible">
+					<h3>Available Time</h3>
+					<div class="ui-grid-b">
+						<div class="ui-block-a">
+							<span class="column">OpenDate</span>
+						</div>
+						<div class="ui-block-b">
+							<span class="column">OpenTime</span>
+						</div>
+						<div class="ui-block-c">
+							<span class="column">CloseTime</span>
+						</div>
+						<!-- Monday -->
+						<div class="ui-block-a">
+							<span class="column">Monday</span>
+						</div>
+						<div class="ui-block-b">
+							<input name="opentime-mon" id="opentime-mon" type="date"
+								data-role="datebox" class="customdate"
+								data-options='{"mode": "timebox", "timeFormatOverride": 12}'>
+						</div>
+						<div class="ui-block-c">
+							<input name="closetime-mon" id="closetime-mon" type="date"
+								data-role="datebox" class="customdate"
+								data-options='{"mode": "timebox", "timeFormatOverride": 12}'>
+						</div>
+						<!-- Tuesday -->
+						<div class="ui-block-a">
+							<span class="column">Tuesday</span>
+						</div>
+						<div class="ui-block-b">
+							<input name="opentime-tue" id="opentime-tue" type="date"
+								data-role="datebox" class="customdate"
+								data-options='{"mode": "timebox", "timeFormatOverride": 12}'>
+						</div>
+						<div class="ui-block-c">
+							<input name="closetime-tue" id="closetime-tue" type="date"
+								data-role="datebox" class="customdate"
+								data-options='{"mode": "timebox", "timeFormatOverride": 12}'>
+						</div>
+						<!-- Wednesday -->
+						<div class="ui-block-a">
+							<span class="column">Wednesday</span>
+						</div>
+						<div class="ui-block-b">
+							<input name="opentime-wed" id="opentime-wed" type="date"
+								data-role="datebox" class="customdate"
+								data-options='{"mode": "timebox", "timeFormatOverride": 12}'>
+						</div>
+						<div class="ui-block-c">
+							<input name="closetime-wed" id="closetime-wed" type="date"
+								data-role="datebox" class="customdate"
+								data-options='{"mode": "timebox", "timeFormatOverride": 12}'>
+						</div>
+						<!-- Thursday -->
+						<div class="ui-block-a">
+							<span class="column">Thursday</span>
+						</div>
+						<div class="ui-block-b">
+							<input name="opentime-thu" id="opentime-thu" type="date"
+								data-role="datebox" class="customdate"
+								data-options='{"mode": "timebox", "timeFormatOverride": 12}'>
+						</div>
+						<div class="ui-block-c">
+							<input name="closetime-thu" id="closetime-thu" type="date"
+								data-role="datebox" class="customdate"
+								data-options='{"mode": "timebox", "timeFormatOverride": 12}'>
+						</div>
+						<!-- Friday -->
+						<div class="ui-block-a">
+							<span class="column">Friday</span>
+						</div>
+						<div class="ui-block-b">
+							<input name="opentime-fri" id="opentime-fri" type="date"
+								data-role="datebox" class="customdate"
+								data-options='{"mode": "timebox", "timeFormatOverride": 12}'>
+						</div>
+						<div class="ui-block-c">
+							<input name="closetime-fri" id="closetime-fri" type="date"
+								data-role="datebox" class="customdate"
+								data-options='{"mode": "timebox", "timeFormatOverride": 12}'>
+						</div>
+						<!-- Saturday -->
+						<div class="ui-block-a">
+							<span class="column">Saturday</span>
+						</div>
+						<div class="ui-block-b">
+							<input name="opentime-sat" id="opentime-sat" type="date"
+								data-role="datebox" class="customdate"
+								data-options='{"mode": "timebox", "timeFormatOverride": 12}'>
+						</div>
+						<div class="ui-block-c">
+							<input name="closetime-sat" id="closetime-sat" type="date"
+								data-role="datebox" class="customdate"
+								data-options='{"mode": "timebox", "timeFormatOverride": 12}'>
+						</div>
+						<!-- Sunday -->
+						<div class="ui-block-a">
+							<span class="column">Sunday</span>
+						</div>
+						<div class="ui-block-b">
+							<input name="opentime-sun" id="opentime-sun" type="date"
+								data-role="datebox" class="customdate"
+								data-options='{"mode": "timebox", "timeFormatOverride": 12}'>
+						</div>
+						<div class="ui-block-c">
+							<input name="closetime-sun" id="closetime-sun" type="date"
+								data-role="datebox" class="customdate"
+								data-options='{"mode": "timebox", "timeFormatOverride": 12}'>
+						</div>
+
+					</div>
+					<!-- /grid-b -->
+				</div>
+				<div data-role="collapsible">
+					<h3>Contact Info</h3>
+					<div data-role="fieldcontain">
+						<label for="">Shop Location</label> <input name="shopLocation"
+							id="shopLocation" type="text" />
+					</div>
+					<div data-role="fieldcontain">
+						<label for="">Shop Website</label> <input name="shopWebsite"
+							id="shopWebsite" type="text" />
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<div data-role="footer" class="ui-bar ui-bar-d" data-position="fixed">
+			<a href="#page-2"  class="ui-icon-iphone"></a>
+			<a href="#page-3"  class="ui-icon-photos"></a>
+			<a href="#page-4"  class="ui-icon-diapad"></a>
+		</div>
+	</div>
+	<div id="dialog1" class="contact-add" data-role="page">			
+		<div data-role="content">	
+				<div >
+						<label for="telephoneName">name</label>
+						<input name="telephoneName" id="telephoneName" class="telephoneName" type="text"  /> 
+						<br/>
+						<label for="telephoneNumber">number</label> 
+						<input name="telephoneNumber" class="telephoneNumber" type="tel" id="telephoneNumber" type="text" />
+					    <br/>
+					    <a data-rel="back" data-role='button' onclick="addContact();" href='#'>Confirm</a>
+					    <a data-rel="back" data-role='button' href='#'>Close</a>
+				</div>
+		</div>
+	</div>
+	<div id="page-2" class="contact-page" data-role="page">
+		<div data-role="header" class="ui-bar-d">
+						<a href="list.html" data-ajax="false" data-icon="delete">Cancel</a>
+							<h1>SiamShopCrud</h1>
+						<a href="#" onclick="save();" data-icon="check">Save</a>
+		</div>
+		<div data-role="content">
+				<div >
+					<label for="">Telephone number</label> 
+					<a href="#dialog1" data-rel="dialog" data-transition="flip" >
+						<img src="add_contact.png"/></a>
+					<!--<div id="inlinecontent" style="display:none" 
+					  data-options='{"mode":"blank","headerText":"Add Contact","headerClose":true,"blankContent":true}'>
+					</div>
+					 <br /> <label for="">name</label>
+						<input name="telephoneName" id="telephoneName" type="text" /> 
+						<label for="">number</label> <input name="telephoneNumber"
+							id="telephoneNumber" type="text" />
+					-->	
+					</div>
+					<br/>
+					<ul class="contact-entries" data-role="listview" data-theme="b">
+						
+					</ul>	 
+		</div>
+		
+		<div data-role="footer" class="ui-bar ui-bar-d" data-position="fixed">
+			<a href="#page-1" class="ui-icon-id"></a>
+			<a href="#page-3" class="ui-icon-photos"></a>
+			<a href="#page-4" class="ui-icon-diapad"></a>
+		</div>
+	</div>
+	<div id="dialog2" class="category-add" data-role="page">			
+		<div data-role="content">	
+				<div >
+						<select name="select-category" id="select-category">
+						</select>
+						<br/>
+					    <a data-rel="back" data-role='button' onclick="addCategory();" href='#'>Confirm</a>
+					    <a data-rel="back" data-role='button' href='#'>Close</a>
+				</div>
+		</div>
+	</div>
+	<div id="page-4" class="category-page" data-role="page">
+		<div data-role="header" class="ui-bar-d">
+						<a href="list.html" data-ajax="false"  data-icon="delete">Cancel</a>
+							<h1>SiamShopCrud</h1>
+						<a href="#" onclick="save();"  data-icon="check">Save</a>
+		</div>
+		<div data-role="content">
+			<br/>
+					<div>
+						<label for="">shop Category</label> 
+						<a href="#dialog2" data-rel="dialog" data-transition="flip" ><img src="circle-plus.png"/></a>
+						<br/>
+						</div>
+					<br/>
+					<ul class="category-entries" data-role="listview" data-theme="b" >
+						
+					</ul>
+		</div>
+		<div data-role="footer" class="ui-bar ui-bar-d" data-position="fixed">
+			<a href="#page-1" class="ui-icon-id"></a>
+			<a href="#page-2" class="ui-icon-iphone"></a>
+			<a href="#page-3" class="ui-icon-photos"></a>
+		</div>
+	</div>
+	<div id="page-3" class="gallery-page" data-role="page">
+		<div  class="ui-bar ui-bar-d" >
+			<h1>Gallery</h1>
+			<div  data-role="button" onclick="capturePhoto();" class="ui-icon-upload-cature"></div> 
+			<div  data-role="button"  onclick="getPhoto();" class="ui-icon-upload-library"></div>
+		</div>
+		<div data-role="content">
+				<div class="gallery-entries">
+				
+				</div>
+			
+		</div>
+		<div data-role="footer" class="ui-bar ui-bar-d" data-position="fixed">
+			<a href="#page-1" class="ui-icon-id"></a>
+			<a href="#page-2" class="ui-icon-iphone"></a>
+			<a href="#page-4" class="ui-icon-diapad"></a>
+		</div>
+	</div>
+
+
+</body>
+</html>

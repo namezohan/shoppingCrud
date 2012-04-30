@@ -1,0 +1,9 @@
+{
+  "name": "shopping-app",
+  "version": "0.0.1",
+  "dependencies": {
+    "express": "latest",
+    "sag": "0.3.0",
+    "redis":"latest",
+  }
+}

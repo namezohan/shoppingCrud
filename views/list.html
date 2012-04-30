@@ -1,0 +1,91 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>SiamShopCrud</title>
+<script type="text/javascript" charset="utf-8" src="cordova-1.5.0.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1"> 
+<link rel="stylesheet" href="http://code.jquery.com/mobile/1.1.0/jquery.mobile-1.1.0.min.css" />
+<link rel="stylesheet" type="text/css" href="default.css"/>
+	<script src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+	<script src="http://code.jquery.com/mobile/1.1.0/jquery.mobile-1.1.0.min.js"></script>
+</head> 
+<script type="text/javascript" src="sag-0.3.0.js"></script>
+<body> 
+
+<script type="text/javascript" charset="utf-8">
+	var couch;
+	document.addEventListener("ready", onDeviceReady, false);
+	function initListElement(shopData){
+		if(shopData){
+			var ul = $('.data-entries');
+			var rows = shopData.rows;
+			for(i in rows){
+				var li = $('<li></li>');
+				var a = $('<a>'+rows[i].value+'</a>');
+				a.attr("href","#");
+				a.bind('click',{msg: rows[i].id}, function(evt){
+					//$.mobile.showPageLoadingMsg();
+	    			window.localStorage.setItem("current_row",evt.data.msg);
+	    			window.location.replace('form.html');
+			 	   	/*couch.decode(false);
+					 couch.get({
+				    	  url: '/'+evt.data.msg,
+				    	  callback: function(res) {
+				    	 		$.mobile.hidePageLoadingMsg();
+				    			window.location.replace('form.html');
+				    	  }
+				   });*/
+				});
+				li.append(a);
+				ul.append(li);
+			}
+			ul.listview("refresh");
+		}
+	}
+	function onDeviceReady() {
+		$.mobile.showPageLoadingMsg();    
+		couch = sag.server('shopping.cloudant.com');
+	    couch.setDatabase('shoppingapp');
+	    couch.login({
+	      user: 'shopping',
+	      pass: 'shoppingpass',
+	      type: couch.AUTH_BASIC
+	    });
+	    if(window.localStorage && window.localStorage.getItem("ini-list")){
+			var initList = window.localStorage.getItem("ini-list");
+	    	$.mobile.hidePageLoadingMsg(); 
+	    	window.localStorage.removeItem("ini-list");//var listObj = JSON.parse(initList);
+	   		initListElement(JSON.parse(initList));
+	    }else{
+	    	  couch.get({
+		    	  url: '/_design/shopping_app/_view/name_index',
+		    	  callback: function(res, success) {
+		    	    if(success) {
+
+		    	 		$.mobile.hidePageLoadingMsg();
+		    	    	initListElement(res.body);
+		    	    }
+		    	    else {
+		    	 		$.mobile.hidePageLoadingMsg();
+						alert("could not connect Database");
+		    	    }
+		    	  }
+		   });
+	    }
+	}
+	
+</script>
+<div data-role="page" class="dataList">
+
+	<div data-role="header">
+		<h1>Data List</h1>
+		<a href="form.html" data-icon="plus" data-transition="fade" data-ajax="false">Add</a>
+	</div><!-- /header -->
+	<div data-role="content"> 	 
+			<ul data-role="listview"  class="data-entries"  data-theme="b">
+			</ul>
+	</div>
+	
+</div>
+</body>
+</html>

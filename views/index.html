@@ -1,0 +1,82 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>SiamShopCrud</title>
+<script type="text/javascript" charset="utf-8" src="cordova-1.5.0.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="http://code.jquery.com/mobile/1.1.0/jquery.mobile-1.1.0.min.css" />
+<link rel="stylesheet" type="text/css" href="./default.css"/>
+<script src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+<script src="http://code.jquery.com/mobile/1.1.0/jquery.mobile-1.1.0.min.js"></script>
+<script type="text/javascript" src="./sag-0.3.0.js"></script>
+</head> 
+<body>
+<script type="text/javascript">
+	var couch;
+	
+	var temp_data_rows = [];
+	$(document).ready(onDeviceReady);
+	
+	function onDeviceReady() {
+		couch = sag.server('shopping.cloudant.com');
+	    couch.setDatabase('shoppingapp');
+	    couch.login({
+	      user: 'shopping',
+	      pass: 'shoppingpass',
+	      type: couch.AUTH_BASIC
+	    });
+
+	   couch.get({ url: '/_design/shopping_app/_view/sub_category',
+	    	  callback: function(res, success) {
+		    	    if(success) {
+		    	    	if(window.localStorage){
+		    	    		window.localStorage.setItem("ini-category",JSON.stringify(res.body));
+		    	    	}
+		    	    	initList();
+		    	    } else {
+						alert("could not connect Database");
+		    	    }
+		      }
+	   });
+	   
+	  
+	}
+	function initList(){
+		couch.get({
+	    	  url: '/_design/shopping_app/_view/name_index',
+	    	  callback: function(res, success) {
+	    	    if(success) {
+	    	    	if(window.localStorage){
+	    	    		window.localStorage.setItem("ini-list",JSON.stringify(res.body));
+	    	    	}
+	    	    	window.location.replace('list.html');
+	    	    } else {
+					alert("could not connect Database");
+	    	    }
+	    	  }
+	   }); 
+	}
+	</script>
+	<div data-role="page" class="indexPage" >
+		
+		<!-- /header -->
+		<div data-role="content" >
+		 <div class="align-center">
+		    <span class="header">
+		    	SiamShopCrud
+		    </span>
+		    <br/>
+		    <span class="textDetail">
+		    	Manage Shop data with this Application.
+		    </span>
+		    <span class="textDetail">
+		     	Please Turn On Internet Connection
+		    </span>
+		    </div>
+       	</div>
+		<!-- /content -->
+	</div>
+	<!-- /page -->
+
+</body>
+</html>

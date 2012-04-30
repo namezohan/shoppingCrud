@@ -1,0 +1,153 @@
+@font-face {
+font-family: GraublauWeb;
+src: url("GraublauWeb.otf") format(opentype);
+}
+@font-face {
+font-family: Chunkfive;
+src: url("chunkfive.otf") format(opentype);
+}
+@font-face {
+font-family: AllerBold;
+src: url("Aller_Bd.otf") format(truetype);
+}
+@font-face {
+font-family: AllerLt;
+src: url("Aller_Lt.otf") format(truetype);
+}
+h1{
+	
+font-family:Chunkfive;
+font-size:18px!important;
+}
+.ui-input-datebox{
+border:none;
+ width:20!important;
+}
+.ui-block-a,.ui-block-b,.ui-block-c,.column{
+  margin-top:5px;
+  margin-bottom:5px;
+}
+.column{
+font-family: GraublauWeb;
+font-size:20px;
+
+}
+.warning{
+font-family: GraublauWeb;
+font-size:30px;
+
+}
+.dataList li a{
+font-family: GraublauWeb;
+font-size:25px;
+}
+.dataList li a{
+font-family: GraublauWeb;
+font-size:25px;
+}	
+label{
+font-family: GraublauWeb;
+font-size:20px!important;
+
+}
+.error,.loading{
+
+font-family: GraublauWeb;
+font-size:20px;
+text-align:center;
+}
+
+.header{
+	font-family:AllerBold;
+	font-size:40px;
+	font-
+}
+.textDetail{
+	font-family:AllerLt;
+	font-size:15px;	
+}
+.indexPage{
+	background:#C5C5C5;
+}
+.align-center{
+    text-align:center;
+    padding-top:50%;
+}
+.no-image{
+    margin: o auto;
+    height:200px;
+    backgroud-color:#FFFF;
+}
+.content_div {
+    display: none;
+}
+.content_div:first-child {
+    display: block;
+}
+.gallery-entries{ 
+	list-style:none;
+}
+.gallery-entries{
+	display:block;
+	margin: 0 auto;
+}
+.gallery-item{
+	display:block;
+	background-size: cover;
+	background-repeat: no-repeat;
+	width:32%;
+	height:100px;
+	margin-left:1%;
+	float:left;
+	-webkit-box-shadow: #999 0 3px 5px;
+	-moz-box-shadow: #999 0 3px 5px;
+	box-shadow: #999 0 3px 5px;
+	border: 1px solid #fff;
+	max-width:100%;
+}
+
+.contact-entries, .category-entries{ 
+	list-style:none; 
+}
+
+.ui-icon-upload-cature {
+	width:50px;
+	height:60px;
+	float:right;   
+	border:none;
+	background: url("camera.png") no-repeat center!important;
+}
+.ui-icon-upload-library {
+	width:50px;
+	height:60px;
+	float:right; 
+	border:none; 
+	background: url("book.png") no-repeat center!important;
+}
+.ui-icon-id{
+	height:35px;
+	width:35px;
+	border:none;
+	background: url("info.png") no-repeat  center !important;	
+}
+.ui-icon-iphone{
+	
+	height:35px;
+	width:35px;
+	border:none;
+	background: url("iphone.png") no-repeat   center !important;	
+}
+.ui-icon-photos{
+	
+	height:35px;
+	width:35px;
+	border:none;
+	background: url("photos.png") no-repeat   center !important;	
+}
+
+.ui-icon-diapad{
+	height:35px;
+	width:35px;
+	border:none;
+	background: url("diapad.png") no-repeat   center !important;	
+}
