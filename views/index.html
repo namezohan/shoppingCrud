@@ -29,6 +29,7 @@
 	   couch.get({ url: '/_design/shopping_app/_view/sub_category',
 	    	  callback: function(res, success) {
 		    	    if(success) {
+		    	    	alert("success");
 		    	    	if(window.localStorage){
 		    	    		window.localStorage.setItem("ini-category",JSON.stringify(res.body));
 		    	    	}
