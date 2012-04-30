@@ -9,21 +9,18 @@
 	<script src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
 	<script src="http://code.jquery.com/mobile/1.1.0/jquery.mobile-1.1.0.min.js"></script>
 </head> 
-<script type="text/javascript" src="sag-0.3.0.js"></script>
 <body> 
 
 <script type="text/javascript" charset="utf-8">
-	var couch;
-	document.addEventListener("ready", onDeviceReady, false);
+	$(document).ready(onDeviceReady);
 	function initListElement(shopData){
+		var ul = $('.data-entries');
 		if(shopData){
-			var ul = $('.data-entries');
-			var rows = shopData.rows;
-			for(i in rows){
+			for(i in shopData){
 				var li = $('<li></li>');
-				var a = $('<a>'+rows[i].value+'</a>');
+				var a = $('<a>'+shopData[i].value+'</a>');
 				a.attr("href","#");
-				a.bind('click',{msg: rows[i].id}, function(evt){
+				a.bind('click',{msg: shopData[i].id}, function(evt){
 					//$.mobile.showPageLoadingMsg();
 	    			window.localStorage.setItem("current_row",evt.data.msg);
 	    			window.location.replace('form.html');
@@ -44,32 +41,18 @@
 	}
 	function onDeviceReady() {
 		$.mobile.showPageLoadingMsg();    
-		couch = sag.server('shopping.cloudant.com');
-	    couch.setDatabase('shoppingapp');
-	    couch.login({
-	      user: 'shopping',
-	      pass: 'shoppingpass',
-	      type: couch.AUTH_BASIC
-	    });
 	    if(window.localStorage && window.localStorage.getItem("ini-list")){
 			var initList = window.localStorage.getItem("ini-list");
 	    	$.mobile.hidePageLoadingMsg(); 
 	    	window.localStorage.removeItem("ini-list");//var listObj = JSON.parse(initList);
 	   		initListElement(JSON.parse(initList));
 	    }else{
-	    	  couch.get({
-		    	  url: '/_design/shopping_app/_view/name_index',
-		    	  callback: function(res, success) {
-		    	    if(success) {
-
-		    	 		$.mobile.hidePageLoadingMsg();
-		    	    	initListElement(res.body);
-		    	    }
-		    	    else {
-		    	 		$.mobile.hidePageLoadingMsg();
-						alert("could not connect Database");
-		    	    }
-		    	  }
+	    	
+		   $.ajax({ url: '/list',
+	    	  success: function(res) {
+		    	 	$.mobile.hidePageLoadingMsg();
+		    	   initListElement(res.rows);
+		    	}
 		   });
 	    }
 	}

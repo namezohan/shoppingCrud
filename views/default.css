@@ -8,11 +8,11 @@ src: url("chunkfive.otf") format(opentype);
 }
 @font-face {
 font-family: AllerBold;
-src: url("Aller_Bd.otf") format(truetype);
+src: url("Aller_Bd.ttf") format(truetype);
 }
 @font-face {
 font-family: AllerLt;
-src: url("Aller_Lt.otf") format(truetype);
+src: url("Aller_Lt.ttf") format(truetype);
 }
 h1{
 	
@@ -95,7 +95,7 @@ text-align:center;
 	display:block;
 	background-size: cover;
 	background-repeat: no-repeat;
-	width:32%;
+	width:200px;
 	height:100px;
 	margin-left:1%;
 	float:left;

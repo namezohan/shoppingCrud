@@ -14,7 +14,7 @@
 <script type="text/javascript" src="http://dev.jtsage.com/cdn/datebox/latest/jquery.mobile.datebox.min.js"></script>
 <script type="text/javascript" src="http://dev.jtsage.com/cdn/datebox/i8n/jquery.mobile.datebox.i8n.en.js"></script>
 <script type="text/javascript" src="http://dev.jtsage.com/cdn/simpledialog/latest/jquery.mobile.simpledialog2.min.js"></script>
-<script type="text/javascript" src="camera.js"></script>
+<!--<script type="text/javascript" src="camera.js"></script>-->
 <script type="text/javascript" src="sag-0.3.0.js"></script>
 <script type="text/javascript" charset="utf-8">
 	
@@ -31,7 +31,9 @@
 	// Wait for PhoneGap to connect with the device
 	//
 	
-	var shopData = {type:'shop', 
+	var shopData = {_id:'',
+					_rev:'',
+					type:'shop', 
 					shopName:'',
 					shopDescription:'',
 					operateTime:{monday:{open:'',end:''},
@@ -50,7 +52,7 @@
 				shopType:[],
 				images:[]	
 	};
-	document.addEventListener("deviceready", onDeviceReady, false);
+	$(document).ready(onDeviceReady);
 	
 	function jsonToForm(obj){
 
@@ -96,6 +98,7 @@
 		
 		
 	};
+
 	$(document).bind("mobileinit", function(){
 		  $.mobile.touchOverflowEnabled = true;
 		  $.mobile.fixedToolbars
@@ -105,8 +108,7 @@
 		var select  = $('#select-category');
 		var categoryConfig = window.localStorage.getItem("ini-category");
 		if(categoryConfig){
-			var body = JSON.parse(categoryConfig);
-			var rows = body.rows;
+			var rows = JSON.parse(categoryConfig);
 			for(var i in rows){
 				var options = $('<option value="'+rows[i].key+'">'+rows[i].value+'</option>');
 				select.append(options);
@@ -115,38 +117,24 @@
 		}
 	}	
 	function onDeviceReady() {
-		pictureSource = navigator.camera.PictureSourceType;
-		destinationType = navigator.camera.DestinationType;
+		// pictureSource = navigator.camera.PictureSourceType;
+		// destinationType = navigator.camera.DestinationType;
 		$('.ui-input-datebox').each(function(){
 			$(this).removeClass('ui-shadow-inset').removeClass('ui-corner-all').removeClass('ui-body-c').css('width','100%').css('padding-left','0px');
 		});
 
 	  $.mobile.defaultPageTransition = 'none';
       $.mobile.useFastClick = true;
-      
-      couch = sag.server('shopping.cloudant.com');
-	    couch.setDatabase('shoppingapp');
-	    couch.login({
-	      user: 'shopping',
-	      pass: 'shoppingpass',
-	      type: couch.AUTH_BASIC
-	    });
 		$.mobile.showPageLoadingMsg("d", "Processing...", false); 
 	    initCategoryMaster();
 	    if(window.localStorage && window.localStorage.getItem('current_row')){
 	    	var id =  window.localStorage.getItem('current_row')
-	 		   	couch.get({
-	    		      url: '/'+id,
-	    		      callback: function(resp, success) {
-	    		        // Update the doc.
-	    		        if(success) {
-	    			    	jsonToForm(resp.body);
-	    		        }
-	    		        else {
-	    		          alert('Error getting blog post: HTTP ' + resp._HTTP.status);
-	    		        }
-		    		}
-		    	});
+	 		$.ajax({ url: '/shop/'+id,
+	    	  success: function(res) {
+		    	 	$.mobile.hidePageLoadingMsg();
+		    	    jsonToForm(res);
+		    	}
+		   });
 	    }else{
 			$.mobile.hidePageLoadingMsg();
 			$.mobile.changePage($('#page-1'));
@@ -360,37 +348,15 @@
 		shopData['images'] = image_array;
 		shopData['shopType'] = input_category;
 		//var params = {shop : JSON.stringify(shopData)};
+		alert(JSON.stringify(shopData._id));
 		$.mobile.showPageLoadingMsg("d", "processing...", false);
-		if(shopData['_id']){
-			 couch.put({
-				  id : shopData['_id'],
-		          data: shopData,
-		          callback: function(resp, success) {
-		            if(success) {
-		            	  $.mobile.hidePageLoadingMsg();
-		            	  window.location.replace('list.html');
-		            }
-		            else {
-			              $.mobile.hidePageLoadingMsg();
-			              alert(JSON.stringify(resp));
-		            }
-		          }
-		        });
-		}else{
-		 couch.post({
-	          data: shopData,
-	          callback: function(resp, success) {
-	            if(success) {
-	            	  $.mobile.hidePageLoadingMsg();
-	            	  window.location.replace('list.html');
-	            }
-	            else {
-		              $.mobile.hidePageLoadingMsg();
-		              alert(JSON.stringify(resp));
-	            }
-	          }
-	        });
-		}
+		 $.ajax({ url: '/save',
+	   			type: 'POST',
+	   			data: shopData,
+	    	    success: function(res) {
+		    		window.location.replace('list.html');   
+		        }
+	  	 });
 	}
 </script>
 </head>
@@ -642,8 +608,7 @@
 	<div id="page-3" class="gallery-page" data-role="page">
 		<div  class="ui-bar ui-bar-d" >
 			<h1>Gallery</h1>
-			<div  data-role="button" onclick="capturePhoto();" class="ui-icon-upload-cature"></div> 
-			<div  data-role="button"  onclick="getPhoto();" class="ui-icon-upload-library"></div>
+			<!--<div  data-role="button"  onclick="getPhoto();" class="ui-icon-upload-library"></div>-->
 		</div>
 		<div data-role="content">
 				<div class="gallery-entries">
