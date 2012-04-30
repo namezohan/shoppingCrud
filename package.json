@@ -5,6 +5,7 @@
     "express": "latest",
     "sag": "0.3.0",
     "redis":"latest",
+  }
   "engines": {
     "node": "0.6.x",
     "npm":  "1.0.x"
