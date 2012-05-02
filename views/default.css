@@ -14,7 +14,7 @@ src: url("Aller_Bd.ttf") format(truetype);
 font-family: AllerLt;
 src: url("Aller_Lt.ttf") format(truetype);
 }
-h1{
+.ui-bar h1{
 	
 font-family:Chunkfive;
 font-size:18px!important;
@@ -118,11 +118,13 @@ text-align:center;
 	background: url("camera.png") no-repeat center!important;
 }
 .ui-icon-upload-library {
-	width:50px;
 	height:60px;
 	float:right; 
 	border:none; 
-	background: url("book.png") no-repeat center!important;
+	background: url("book.png") no-repeat center !important;
+}
+.drag-drop-panel{
+	width:250px;
 }
 .ui-icon-id{
 	height:35px;

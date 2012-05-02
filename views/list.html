@@ -8,6 +8,7 @@
 <link rel="stylesheet" type="text/css" href="default.css"/>
 	<script src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
 	<script src="http://code.jquery.com/mobile/1.1.0/jquery.mobile-1.1.0.min.js"></script>
+	<script type="text/javascript" src="view/message.js"/>
 </head> 
 <body> 
 
@@ -40,7 +41,7 @@
 		}
 	}
 	function onDeviceReady() {
-		$.mobile.showPageLoadingMsg();    
+		$.mobile.showPageLoadingMsg('d','loading...', true);    
 	    if(window.localStorage && window.localStorage.getItem("ini-list")){
 			var initList = window.localStorage.getItem("ini-list");
 	    	$.mobile.hidePageLoadingMsg(); 

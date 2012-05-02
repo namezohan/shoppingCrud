@@ -16,6 +16,7 @@
 <script type="text/javascript" src="http://dev.jtsage.com/cdn/simpledialog/latest/jquery.mobile.simpledialog2.min.js"></script>
 <!--<script type="text/javascript" src="camera.js"></script>-->
 <script type="text/javascript" src="sag-0.3.0.js"></script>
+<script type="text/javascript" src="view/message.js"/>
 <script type="text/javascript" charset="utf-8">
 	
 	var image_array = [];
@@ -36,6 +37,7 @@
 					type:'shop', 
 					shopName:'',
 					shopDescription:'',
+					shopStory:'',
 					operateTime:{monday:{open:'',end:''},
 					tuesday:{open:'',end:''},
 					wednesday:{open:'',end:''},
@@ -63,7 +65,8 @@
 			shopData['_rev'] = obj._rev;
 		}
 		$('#name').val(obj.shopName);
-		$('#story').val(obj.shopDescription);
+		$('#shopDescription').val(obj.shopDescription);
+		$('#story').val(obj.shopStory);
 		$("#opentime-mon").val(obj.operateTime.monday.open);
 		$("#closetime-mon").val(obj.operateTime.monday.close);
 		$("#opentime-tue").val(obj.operateTime.tuesday.open);
@@ -116,16 +119,52 @@
 			}
 		}
 	}	
+	function handleFiles(files) {  
+	  for (var i = 0; i < files.length; i++) {  
+	    var file = files[i];  
+	    var imageType = /image.*/;  
+	      
+	    if (!file.type.match(imageType)) {  
+	      continue;  
+	    }  
+	      
+	    // var img = document.createElement("img");  
+	    // img.classList.add("obj");  
+	    // img.file = file;  
+	    // preview.appendChild(img);  
+	      
+	    var reader = new FileReader();  
+	    
+	    reader.readAsDataURL(file);  
+	    reader.onloadend = function(e){
+	    	appendImg({isProfile:'N', dataUrl:e.target.result})
+	    }  
+	  }  
+	}  
+
 	function onDeviceReady() {
+
 		// pictureSource = navigator.camera.PictureSourceType;
 		// destinationType = navigator.camera.DestinationType;
 		$('.ui-input-datebox').each(function(){
 			$(this).removeClass('ui-shadow-inset').removeClass('ui-corner-all').removeClass('ui-body-c').css('width','100%').css('padding-left','0px');
 		});
+		var dropzone = document.getElementById('dropZone');
+		dropzone.addEventListener("dragover", function(event) {
+			event.stopPropagation();  
+		  event.preventDefault();
+		},true);
+		dropzone.addEventListener("drop", function(event) {
+			event.stopPropagation();  
+		  event.preventDefault();
+		  // Ready to do something with the dropped object
+  		  var allTheFiles = event.dataTransfer.files;
+		  handleFiles(allTheFiles);
+		}, true);
 
 	  $.mobile.defaultPageTransition = 'none';
       $.mobile.useFastClick = true;
-		$.mobile.showPageLoadingMsg("d", "Processing...", false); 
+		$.mobile.showPageLoadingMsg(); 
 	    initCategoryMaster();
 	    if(window.localStorage && window.localStorage.getItem('current_row')){
 	    	var id =  window.localStorage.getItem('current_row')
@@ -161,8 +200,8 @@
 			var lastIndex = image_array.length-1;
 	    	div.bind('click',{msg: lastIndex}, function(evt) {
 	    			$(document).simpledialog2({
-	    				 mode: 'button',
-	    				    headerText: 'Profile Picture',
+	    				 mode: 'blank',
+	    				    headerText: 'Action',
 	    				    headerClose: true,
 	    				    buttonPrompt: 'Set As Profile Picture',
 	    				    buttons : {
@@ -322,6 +361,7 @@
 	}
 	function save(){
 		var input_shopName = $("#name").val()||'';
+		var input_shopDescription = $('#shopDescription').val()||'';
 		var input_shopStory = $("#story").val()||'';
 		var input_shopLocation = $("#shopLocation").val()||'';
 		var input_shopWebsite = $("#shopWebsite").val()||'';
@@ -343,13 +383,13 @@
 		
 		shopData['shopName'] = input_shopName;
 		shopData['contactInfo'] = input_contactInfo;
-		shopData['shopDescription'] = input_shopStory;
+		shopData['shopDescription'] = input_shopDescription;
+		shopData['shopStory'] = input_shopStory;
 		shopData['operateTime'] = input_OperatingTime;
 		shopData['images'] = image_array;
 		shopData['shopType'] = input_category;
 		//var params = {shop : JSON.stringify(shopData)};
-		alert(JSON.stringify(shopData._id));
-		$.mobile.showPageLoadingMsg("d", "processing...", false);
+		$.mobile.showPageLoadingMsg("d", "processing...", true);
 		 $.ajax({ url: '/save',
 	   			type: 'POST',
 	   			data: shopData,
@@ -608,7 +648,7 @@
 	<div id="page-3" class="gallery-page" data-role="page">
 		<div  class="ui-bar ui-bar-d" >
 			<h1>Gallery</h1>
-			<!--<div  data-role="button"  onclick="getPhoto();" class="ui-icon-upload-library"></div>-->
+			<div  data-role="button"  id="dropZone" class="ui-icon-upload-library drag-drop-panel"><span>Drag Image Here</span></div>
 		</div>
 		<div data-role="content">
 				<div class="gallery-entries">
