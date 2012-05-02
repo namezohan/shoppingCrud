@@ -16,7 +16,6 @@
 <script type="text/javascript" src="http://dev.jtsage.com/cdn/simpledialog/latest/jquery.mobile.simpledialog2.min.js"></script>
 <!--<script type="text/javascript" src="camera.js"></script>-->
 <script type="text/javascript" src="sag-0.3.0.js"></script>
-<script type="text/javascript" src="view/message.js"/>
 <script type="text/javascript" charset="utf-8">
 	
 	var image_array = [];
@@ -199,13 +198,13 @@
 	    	image_array.push(data_image);
 			var lastIndex = image_array.length-1;
 	    	div.bind('click',{msg: lastIndex}, function(evt) {
-	    			$(document).simpledialog2({
-	    				 mode: 'blank',
+	    		var that = $(this);
+	    			$('<div>').simpledialog2({
+	    				 mode: 'button',
 	    				    headerText: 'Action',
-	    				    headerClose: true,
-	    				    buttonPrompt: 'Set As Profile Picture',
 	    				    buttons : {
-	    				      'OK': {
+
+	    				      'Set As Profile Picture': {
 	    				        click: function () { 
 	    				        	for(index_image in image_array){
 	        		        			image_array[index_image].isProfile = 'N';
@@ -220,7 +219,19 @@
 		        		        	$('.profileImage').css("display","none");
 	    				        }
 	    				      },
-	    				      'Cancel': {
+	    				      'Delete': {
+	    				        click: function () { 
+	    				        	if(image_array[evt.data.msg].isProfile == 'Y'){
+	    				        		$('.main_profile').css('background-image',"none");
+		        		        		$('.profileImage').css("display","block");
+	    				        	}
+	    				        	image_array[evt.data.msg] = null; 		        		       
+	    				        	that.remove();
+	    				        },
+	    				        icon: "minus",
+	    				        theme: "d"
+	    				      },
+	    				      'Close': {
 	    				        click: function () { 
 	    				          $('#buttonoutput').text('Cancel');
 	    				        },
@@ -386,7 +397,13 @@
 		shopData['shopDescription'] = input_shopDescription;
 		shopData['shopStory'] = input_shopStory;
 		shopData['operateTime'] = input_OperatingTime;
-		shopData['images'] = image_array;
+		var input_image_array = [];
+		for(var i in image_array){
+			if(image_array[i]){
+				input_image_array.push(image_array[i]);
+			}	
+		}
+		shopData['images'] = input_image_array;
 		shopData['shopType'] = input_category;
 		//var params = {shop : JSON.stringify(shopData)};
 		$.mobile.showPageLoadingMsg("d", "processing...", true);
