@@ -87,12 +87,15 @@ text-align:center;
 .content_div:first-child {
     display: block;
 }
-.gallery-entries{ 
-	list-style:none;
-}
 .gallery-entries{
 	display:block;
+	border:1px #ccc;
 	margin: 0 auto;
+	width:99%;	
+	height:550px;
+	border: 1px solid #ccc;
+	max-width:100%;
+	overflow:auto;
 }
 .gallery-item{
 	display:block;
@@ -101,6 +104,7 @@ text-align:center;
 	width:200px;
 	height:100px;
 	margin-left:1%;
+	margin-top:1%;
 	float:left;
 	-webkit-box-shadow: #999 0 3px 5px;
 	-moz-box-shadow: #999 0 3px 5px;
@@ -155,4 +159,37 @@ text-align:center;
 	width:35px;
 	border:none;
 	background: url("diapad.png") no-repeat   center !important;	
+}
+.mask{
+	 opacity: 0;
+    transition: all 0.4s ease-in-out;
+
+    width: 97%;
+    height: 550px;
+    position: absolute;
+    overflow: hidden;
+    top: 220px;
+    left: 20px;
+}
+
+.view h2 {
+	transform: translateY(-100px);
+    opacity: 0;
+    transition: all 0.2s ease-in-out;
+    text-transform: uppercase;
+    color: #fff;
+    text-align: center;
+    position: relative;
+    font-size: 17px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.8);
+    margin: 20px 0 0 0
+}
+
+.view:hover .mask {
+    opacity: 1;
+}
+.view:hover h2{
+    opacity: 1;
+    transform: translateY(0px);
 }

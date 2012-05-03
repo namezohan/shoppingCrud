@@ -136,7 +136,8 @@
 	    
 	    reader.readAsDataURL(file);  
 	    reader.onloadend = function(e){
-	    	appendImg({isProfile:'N', dataUrl:e.target.result})
+	    	appendImg({isProfile:'N', dataUrl:e.target.result});
+	    	$('#gallery-entries').removeClass('view');
 	    }  
 	  }  
 	}  
@@ -148,7 +149,8 @@
 		$('.ui-input-datebox').each(function(){
 			$(this).removeClass('ui-shadow-inset').removeClass('ui-corner-all').removeClass('ui-body-c').css('width','100%').css('padding-left','0px');
 		});
-		var dropzone = document.getElementById('dropZone');
+		var dropzone = document.getElementById('gallery-entries');
+		$(dropzone).addClass('view');
 		dropzone.addEventListener("dragover", function(event) {
 			event.stopPropagation();  
 		  event.preventDefault();
@@ -159,6 +161,7 @@
 		  // Ready to do something with the dropped object
   		  var allTheFiles = event.dataTransfer.files;
 		  handleFiles(allTheFiles);
+		 
 		}, true);
 
 	  $.mobile.defaultPageTransition = 'none';
@@ -652,7 +655,7 @@
 						<br/>
 						</div>
 					<br/>
-					<ul class="category-entries" data-role="listview" data-theme="b" >
+					<ul id="category-entries" class="category-entries" data-role="listview" data-theme="b" >
 						
 					</ul>
 		</div>
@@ -665,13 +668,15 @@
 	<div id="page-3" class="gallery-page" data-role="page">
 		<div  class="ui-bar ui-bar-d" >
 			<h1>Gallery</h1>
-			<div  data-role="button"  id="dropZone" class="ui-icon-upload-library drag-drop-panel"><span>Drag Image Here</span></div>
+			<!--<div  data-role="button"  id="dropZone" class="ui-icon-upload-library drag-drop-panel"><span>Drag Image Here</span></div>-->
 		</div>
 		<div data-role="content">
-				<div class="gallery-entries">
-				
+
+				<div class="gallery-entries" id="gallery-entries">
+					 <div class="mask">
+					     <h2>Drag Image Here</h2>
+					  </div>
 				</div>
-			
 		</div>
 		<div data-role="footer" class="ui-bar ui-bar-d" data-position="fixed">
 			<a href="#page-1" class="ui-icon-id"></a>
