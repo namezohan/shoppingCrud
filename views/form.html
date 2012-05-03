@@ -105,6 +105,7 @@
 		  $.mobile.touchOverflowEnabled = true;
 		  $.mobile.fixedToolbars
 		     .setTouchToggleEnabled(true);
+
 	});
 	function initCategoryMaster(){
 		var select  = $('#select-category');
@@ -144,6 +145,8 @@
 
 	function onDeviceReady() {
 
+   		 $.mobile.collapsible.prototype.options.collapsed = false;
+   		 $.mobile.collapsible.prototype.options.contentTheme = "d";
 		// pictureSource = navigator.camera.PictureSourceType;
 		// destinationType = navigator.camera.DestinationType;
 		$('.ui-input-datebox').each(function(){
@@ -441,8 +444,7 @@
 				<img class="profileImage" src="image.png" alt="image"
 					style="position: absolute; top: 50%; left: 50%; margin-left: -16px; margin-top: -18px" />
 			</div>
-			<div data-role="collapsible-set">
-				<div data-role="collapsible">
+				<div data-role="collapsible" data-theme="c">
 					<h3>Shop Detail</h3>
 					<div data-role="fieldcontain">
 						<label for="name">Shop Name</label> <input name="name" id="name"
@@ -450,7 +452,7 @@
 						<textarea name="story" id="story"></textarea>
 					</div>
 				</div>
-				<div data-role="collapsible">
+				<div data-role="collapsible"  data-theme="c">
 					<h3>Available Time</h3>
 					<div class="ui-grid-b">
 						<div class="ui-block-a">
@@ -564,7 +566,7 @@
 					</div>
 					<!-- /grid-b -->
 				</div>
-				<div data-role="collapsible">
+				<div data-role="collapsible" data-theme="c">
 					<h3>Contact Info</h3>
 					<div data-role="fieldcontain">
 						<label for="">Shop Location</label> <input name="shopLocation"
@@ -576,7 +578,6 @@
 					</div>
 				</div>
 			</div>
-		</div>
 		
 		<div data-role="footer" class="ui-bar ui-bar-d" data-position="fixed">
 			<a href="#page-2"  class="ui-icon-iphone"></a>
