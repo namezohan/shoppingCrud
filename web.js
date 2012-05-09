@@ -62,6 +62,21 @@ app.get('/list', function(req, res){
 	    	  }
 	   }); 
 }); 
+app.get('/listThumbnail', function(req, res){
+		couch.get({
+	    	  url: '/_design/shopping_app/_view/thumbnail',
+	    	  callback: function(response, success) {
+	    	    if(success) {
+	    	    	console.log(JSON.stringify(response.body));
+	    	    	 res.writeHead(200, {'content-type': 'text/json' });
+					 res.write( JSON.stringify(response.body) );
+					 res.end('\n');
+	    	    } else {
+					console.log("could not connect Database");
+	    	    }
+	    	  }
+	   }); 
+}); 
 app.get('/shop/:id', function(req, res){
 	couch.get({
 		      url: '/'+req.params.id,
@@ -86,7 +101,7 @@ app.post('/save', function(req, res){
 	          data: req.body,
 	          callback: function(response, success) {
 	            if(success) {
-	            	 var bodyResp =  {status:'OK'};
+	            	 var bodyResp =  {status:'OK',id:response.body.id,rev:response.body.rev};
 	            	 res.writeHead(200, {'content-type': 'text/json' });
 					 res.write(JSON.stringify(bodyResp));
 					 res.end('\n');
@@ -117,7 +132,45 @@ app.post('/save', function(req, res){
 	    });
 	}
 }); 
+app.post('/saveThumb', function(req, res){
+  console.log("POST: ");
+	if(req.body._id){
+		 couch.put({
+			  id : req.body._id,
+	          data: req.body,
+	          callback: function(response, success) {
+	            if(success) {
+	            	 var bodyResp =  {status:'OK',id:response.body.id,rev:response.body.rev};
+	            	 res.writeHead(200, {'content-type': 'text/json' });
+					 res.write(JSON.stringify(bodyResp));
+					 res.end('\n');
+	            }
+	            else {
+		          console.log('Error getting blog post: HTTP ' + response._HTTP.status);
 
+	            }
+	          }
+		});
+	}else{
+		delete req.body._id;
+		delete req.body._rev;
+		 couch.post({
+	          data: req.body,
+	          callback: function(response, success) {
+	            if(success) {
+	            	 var bodyResp =  {status:'OK'};
+	            	 res.writeHead(200, {'content-type': 'text/json' });
+					 res.write(JSON.stringify(bodyResp));
+					 res.end('\n');
+	            }
+	            else {
+		          console.log('Error getting blog post: HTTP ' + response._HTTP.status);
+		              
+	            }
+	          }
+	    });
+	}
+}); 
 var port = process.env.PORT || 5000;
 app.listen(port, function() {
   console.log("Listening on " + port);

@@ -18,11 +18,13 @@
 		if(shopData){
 			for(i in shopData){
 				var li = $('<li></li>');
-				var a = $('<a>'+shopData[i].value+'</a>');
+				var a = $('<a><img src="'+shopData[i].value.images[0]+'" />'+shopData[i].value.shopName+'</a>');
 				a.attr("href","#");
-				a.bind('click',{msg: shopData[i].id}, function(evt){
+				a.bind('click',{msg:{key:shopData[i].key,thumbnail_id:shopData[i].value.thumbId, thumbnail_rev:shopData[i].value.thumbRev}}, function(evt){
 					//$.mobile.showPageLoadingMsg();
-	    			window.localStorage.setItem("current_row",evt.data.msg);
+	    			window.localStorage.setItem("current_row",evt.data.msg.key);
+	    			window.localStorage.setItem("current_thumbnail_id",evt.data.msg.thumbnail_id);
+	    			window.localStorage.setItem("current_thumbnail_rev",evt.data.msg.thumbnail_rev);
 	    			window.location.replace('form.html');
 			 	   	/*couch.decode(false);
 					 couch.get({
@@ -48,7 +50,7 @@
 	   		initListElement(JSON.parse(initList));
 	    }else{
 	    	
-		   $.ajax({ url: '/list',
+		   $.ajax({ url: '/listThumbnail',
 	    	  success: function(res) {
 		    	 	$.mobile.hidePageLoadingMsg();
 		    	   initListElement(res.rows);
@@ -65,7 +67,7 @@
 		<a href="form.html" data-icon="plus" data-transition="fade" data-ajax="false">Add</a>
 	</div><!-- /header -->
 	<div data-role="content"> 	 
-			<ul data-role="listview"  class="data-entries"  data-theme="b">
+			<ul data-role="listview"  class="data-entries" data-filter="true" data-theme="b">
 			</ul>
 	</div>
 	
