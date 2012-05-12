@@ -36,6 +36,7 @@
 	var shopData = {_id:'',
 					_rev:'',
 					type:'shop', 
+					icon:'',
 					shopName:'',
 					shopDescription:'',
 					shopStory:'',
@@ -77,6 +78,9 @@
 		if(obj._rev){
 			shopData['_rev'] = obj._rev;
 		}
+
+        $(".image_icon").css('background-image',"url("+obj.icon+")");
+		shopData.icon = obj.icon;
 		$('#name').val(obj.shopName);
 		$('#shopDescription').val(obj.shopDescription);
 		$('#story').val(obj.shopStory);
@@ -97,6 +101,7 @@
 		//info 
 		$('#shopLocation').val(obj.contactInfo.shopLocation);
 		$('#shopWebsite').val(obj.contactInfo.shopWebsite);
+		$('#shopFacebook').val(obj.contactInfo.shopFacebook);
 		addContactFromContactList(obj.contactInfo.telephoneNumber);		
 		addCategoryFromCategoryList(obj.shopType);
 		var imageDataList = obj.images;
@@ -517,8 +522,8 @@
         // new thumbnailer(canvas, imageObj, 50, 1); 
 
         var ratio = 1;
-        var maxWidth = 70;
-        var maxHeight = 70;
+        var maxWidth = 50;
+        var maxHeight = 50;
 
         if(imageObj.width > maxWidth)
             ratio = maxWidth / imageObj.width;
@@ -562,6 +567,7 @@
 		var input_shopStory = $("#story").val()||'';
 		var input_shopLocation = $("#shopLocation").val()||'';
 		var input_shopWebsite = $("#shopWebsite").val()||'';
+		var input_shopFacebook = $("#shopFacebook").val()||'';
 		var input_contact = findInputContactForSave();
 		var input_category = findInputCategoryForSave();
 		var input_OperatingTime ={monday:{open:$("#opentime-mon").val(),close:$("#closetime-mon").val()},
@@ -572,12 +578,13 @@
 								  saturday:{open:$("#opentime-sat").val(),close:$("#closetime-sat").val()},
 								  sunday:{open:$("#opentime-sun").val(),close:$("#closetime-sun").val()},
 								};
+		
 		var input_contactInfo = {
 									shopLocation:input_shopLocation,
 									telephoneNumber:input_contact,
 									shopWebsite:input_shopWebsite,
 									shopTwitter:'',
-									shopFacebook:''
+									shopFacebook:input_shopFacebook
 								};
 		
 		shopData['shopName'] = input_shopName;
@@ -632,6 +639,14 @@
 			</div>
 				<div data-role="collapsible" data-theme="c">
 					<h3>Shop Detail</h3>
+					<div data-role="fieldcontain">
+						<label for="icon">ICON (Optional)</label>
+						<input type="file" name="icon" id="icon" style="display:inline"/>
+						
+						<div class="image_icon" style="width:30px;height:30px;display:inline-block;vertical-align:middle;"></div>
+
+						<script type="text/javascript" src="shopIcon.js"></script>
+					</div>
 					<div data-role="fieldcontain">
 						<label for="name">Shop Name</label> <input name="name" id="name"
 							type="text" /> 
@@ -761,8 +776,12 @@
 							id="shopLocation" type="text" />
 					</div>
 					<div data-role="fieldcontain">
-						<label for="">Shop Website</label> <input name="shopWebsite"
+						<label for="">Shop Website</la bel> <input name="shopWebsite"
 							id="shopWebsite" type="text" />
+					</div>
+					<div data-role="fieldcontain">
+						<label for="">Shop Facebook FanPage</la bel> <input name="shopFacebook"
+							id="shopFacebook" type="text" />
 					</div>
 				</div>
 			</div>

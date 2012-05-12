@@ -112,7 +112,14 @@ text-align:center;
 	border: 1px solid #fff;
 	max-width:100%;
 }
-
+.image_icon{
+	background-color:#ccc;
+	-webkit-box-shadow: #999 0 3px 5px;
+	-moz-box-shadow: #999 0 3px 5px;
+	box-shadow: #999 0 3px 5px;
+	border: 1px solid #fff;
+	max-width:100%;
+}
 .contact-entries, .category-entries{ 
 	list-style:none; 
 }
