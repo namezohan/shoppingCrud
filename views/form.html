@@ -58,6 +58,7 @@
 				shopType:[],
 				images:[]	
 	};
+
 	var shopThumbnailData = {
 		_id:'',
 		_rev:'',
@@ -612,7 +613,15 @@
 		        }
 	  	 });
 	}
-	
+	function addProduct(){
+		if(shopData['_id']){
+			window.localStorage.setItem('current_shop_id', shopData['_id']);	
+			window.location.replace('formShopData.html');
+
+		}else{
+			alert("please Save shop Data before controll Product");
+		}
+	}
 </script>
 </head>
 <body>
@@ -626,7 +635,9 @@
 		<div data-role="header" class="ui-bar-d">
 						<a href="list.html" data-ajax="false" data-icon="delete">Cancel</a>
 							<h1>SiamShopCrud</h1>
-						<a href="#" onclick="save();" data-icon="check" >Save</a>
+
+				        <a href="#" onclick="addProduct();" data-icon="plus" >add Product</a>
+ 						<a href="#" onclick="save();" data-icon="check" >Save</a>
 		</div>
 		<div data-role="content">
 			<canvas id="procCanvasCopy" width="50" height="50" style="display:none"></canvas>

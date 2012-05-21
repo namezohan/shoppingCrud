@@ -1,0 +1,288 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>SiamShopCrud</title>
+<script type="text/javascript" charset="utf-8" src="cordova-1.5.0.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="http://code.jquery.com/mobile/1.1.0/jquery.mobile-1.1.0.min.css" />
+<link rel="stylesheet" type="text/css" href="http://dev.jtsage.com/cdn/datebox/latest/jquery.mobile.datebox.min.css" />
+<link rel="stylesheet" type="text/css" href="http://dev.jtsage.com/cdn/simpledialog/latest/jquery.mobile.simpledialog.min.css" /> 
+<link rel="stylesheet" type="text/css" href="default.css" />
+<script src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+<script src="http://code.jquery.com/mobile/1.1.0/jquery.mobile-1.1.0.min.js"></script>
+<script type="text/javascript" src="http://dev.jtsage.com/jquery.mousewheel.min.js"></script>
+<script type="text/javascript" src="http://dev.jtsage.com/cdn/datebox/latest/jquery.mobile.datebox.min.js"></script>
+<script type="text/javascript" src="http://dev.jtsage.com/cdn/datebox/i8n/jquery.mobile.datebox.i8n.en.js"></script>
+<script type="text/javascript" src="http://dev.jtsage.com/cdn/simpledialog/latest/jquery.mobile.simpledialog2.min.js"></script>
+<!--<script type="text/javascript" src="camera.js"></script>-->
+<script type="text/javascript" src="sag-0.3.0.js"></script>
+<script type="text/javascript" charset="utf-8">
+	
+	var image_array = [];
+	var id = '';
+	var _rev = '';
+	var pictureSource;   // picture source
+	var destinationType; // sets the format of returned value 
+	var couch;
+	var documentList = [];
+	// Wait for PhoneGap to connect with the device
+	//
+	
+	var shopProduct = {_id:'',
+					_rev:'',
+					type:'product', 
+					icon:'',
+					productName:'',
+					productDescription:'',
+					productPrice:'',
+					shopId:'',
+					images:[]	
+	};
+
+
+	$(document).ready(onDeviceReady);
+	
+	function jsonToForm(obj){
+
+		if(obj._id){
+			shopProduct['_id'] = obj._id;
+		}
+		if(obj._rev){
+			shopProduct['_rev'] = obj._rev;
+		}
+
+		shopProduct.icon = obj.icon;
+		$('#productName').val(obj.productName);
+		$('#productDescription').val(obj.productDescription);
+		
+		var imageDataList = obj.images;
+		for(i in imageDataList){
+			appendImg(imageDataList[i]);
+		}
+
+		if(window.localStorage && window.localStorage.getItem('current_shop_id')){
+  		  window.localStorage.removeItem('current_shop_id');
+  		}
+  		//thumbnail
+  		
+		$.mobile.hidePageLoadingMsg();
+
+		$.mobile.changePage($('#page-1'));
+		
+		
+	};
+
+	$(document).bind("mobileinit", function(){
+		  $.mobile.touchOverflowEnabled = true;
+		  $.mobile.fixedToolbars
+		     .setTouchToggleEnabled(true);
+
+	});
+	function handleFiles(files) {  
+	  for (var i = 0; i < files.length; i++) {  
+	    var file = files[i];  
+	    var imageType = /image.*/;  
+	      
+	    if (!file.type.match(imageType)) {  
+	      continue;  
+	    }  
+	      
+	    // var img = document.createElement("img");  
+	    // img.classList.add("obj");  
+	    // img.file = file;  
+	    // preview.appendChild(img);  
+	      
+	    var reader = new FileReader();  
+	    
+	    reader.readAsDataURL(file);  
+	    reader.onloadend = function(e){
+	    	appendImg({isProfile:'N', dataUrl:e.target.result});
+	    	$('#gallery-entries').removeClass('view');
+	    }  
+	  }  
+	}  
+
+	function onDeviceReady() {
+
+   		 $.mobile.collapsible.prototype.options.collapsed = false;
+   		 $.mobile.collapsible.prototype.options.contentTheme = "d";
+		// pictureSource = navigator.camera.PictureSourceType;
+		// destinationType = navigator.camera.DestinationType;
+		$('.ui-input-datebox').each(function(){
+			$(this).removeClass('ui-shadow-inset').removeClass('ui-corner-all').removeClass('ui-body-c').css('width','100%').css('padding-left','0px');
+		});
+		var dropzone = document.getElementById('gallery-entries');
+		$(dropzone).addClass('view');
+		dropzone.addEventListener("dragover", function(event) {
+			event.stopPropagation();  
+		  event.preventDefault();
+		},true);
+		dropzone.addEventListener("drop", function(event) {
+			event.stopPropagation();  
+		  event.preventDefault();
+		  // Ready to do something with the dropped object
+  		  var allTheFiles = event.dataTransfer.files;
+		  handleFiles(allTheFiles);
+		 
+		}, true);
+
+	  $.mobile.defaultPageTransition = 'none';
+      $.mobile.useFastClick = true;
+		$.mobile.showPageLoadingMsg();
+
+	    if(window.localStorage && window.localStorage.getItem('current_shop_id')){
+	    
+	    	var shop_id =  window.localStorage.getItem('current_shop_id');
+	 		var productId = window.localStorage.getItem('current_prod_id');
+	 		console.log('shopId :'+shop_id+'productId :'+productId);
+	 		if(productId){
+		 		$.ajax({ url: '/shop/'+shop_id+'/products/'+productId,
+		    	  success: function(res) {
+			    	 	$.mobile.hidePageLoadingMsg();
+			    	    jsonToForm(res);
+			    	}
+			   });
+	 		}else{
+	 			shopProduct['shopId'] = shop_id;
+	 			console.log('shopProduct - > shopId'+shopProduct['shopId']);
+	 			window.localStorage.removeItem('current_shop_id');
+
+			$.mobile.hidePageLoadingMsg();
+			$.mobile.changePage($('#page-1'));
+	 		}
+	    }else{
+			$.mobile.hidePageLoadingMsg();
+			window.location.replace('list.html');
+	    }
+	}
+	 function appendImg(data_image){
+	        //var li = document.createElement('li');
+	        var div = $('<div></div>');
+	       	div.addClass('gallery-item');
+	        
+	    	image_array.push(data_image);
+			var lastIndex = image_array.length-1;
+	    	div.bind('click',{msg: lastIndex}, function(evt) {
+	    		var that = $(this);
+	    			$('<div>').simpledialog2({
+	    				 mode: 'button',
+	    				    headerText: 'Action',
+	    				    buttons : {
+	    				      'Delete': {
+	    				        click: function () { 
+	    				        	image_array[evt.data.msg] = null; 		        		       
+	    				        	that.remove();
+	    				        },
+	    				        icon: "minus",
+	    				        theme: "d"
+	    				      },
+	    				      'Close': {
+	    				        click: function () { 
+	    				          $('#buttonoutput').text('Cancel');
+	    				        },
+	    				        icon: "delete",
+	    				        theme: "c"
+	    				      }
+	    				 }
+		        	})
+		        
+	    	});
+	        if(data_image.dataUrl.indexOf("data:image/jpeg;base64,") == -1){
+	        	div.css("background-image","url(data:image/jpeg;base64," + data_image.dataUrl+")");
+	        }else{
+	        	div.css("background-image",'url('+data_image.dataUrl+')');
+	        }
+	        //img.width = 100;
+	        //a.append($(img));
+	        //$(li).append(div); 
+	        $('#gallery-entries').append(div);
+	    }
+	 
+		
+	function alertValidate(){
+		 $('<div>').simpledialog2({
+			    mode: 'blank',
+			    headerText: 'Validation Error',
+			    fullScreen: true,
+			    fullScreenForce: true,
+			    blankContent : 
+			      "<div class='error'>Please fill Shop Name</div>"+
+			      // NOTE: the use of rel="close" causes this button to close the dialog.
+			      "<a rel='close' data-role='button' href='#'>Close</a>"
+			  });
+	}
+
+	function save(){
+		var input_producName = $("#productName").val()||'';
+		var input_productDescription = $('#productDescription').val()||'';
+		var input_productPrice = $("#productPrice").val()||'';
+		shopProduct['productName'] = input_producName;
+		shopProduct['productDescription'] = input_productDescription;
+		shopProduct['productPrice'] = input_productPrice;
+
+		var input_image_array = [];
+		for(var i in image_array){
+			if(image_array[i]){
+				input_image_array.push(image_array[i]);
+			}	
+		}
+		shopProduct['images'] = input_image_array;
+
+		var params = {product : JSON.stringify(shopProduct)};
+		$.mobile.showPageLoadingMsg("d", "processing...", true);
+		 $.ajax({ url: '/save',
+	   			type: 'POST',
+	   			data: shopProduct,
+	    	    success: function(res) {		
+	    	    //console.log(''+JSON.stringify(res));
+		    		window.location.replace('list.html');   
+		        }
+	  	 });
+	}
+	
+</script>
+</head>
+<body>
+
+	<div id="loadingPage" data-role="page">
+		<div data-role="content">
+			
+		</div>
+	</div>
+ 	<div id="page-1" data-role="page" >
+		<div data-role="header" class="ui-bar-d">
+						<a href="list.html" data-ajax="false" data-icon="delete">Cancel</a>
+							<h1>SiamShopCrud</h1>
+						<a href="#" onclick="save();" data-icon="check" >Save</a>
+		</div>
+		<div data-role="content">
+				<div data-role="collapsible" data-theme="c">
+					<h3>Shop Detail</h3>
+					<div data-role="fieldcontain">
+						<label for="productName">Product Name</label> <input name="productName" id="productName"
+							type="text" /> 
+					</div>	
+
+					<div data-role="fieldcontain">
+						<label for="productDescription">Product Description</label> 
+						<input name="productDescription" id="productDescription" type="text" /> 	
+					</div>
+					<div data-role="fieldcontain">
+						<label for="productPrice">Product Price</label> <input name="productPrice" id="productPrice"
+							type="text" /> 
+					</div>
+					<br/>
+					<div class="gallery-entries" id="gallery-entries">
+						 <div class="mask">
+						     <h2>Drag Image Here</h2>
+						  </div>
+					</div>
+				</div>
+		</div>
+	</div>
+	
+
+
+</body>
+</html>
+ 
